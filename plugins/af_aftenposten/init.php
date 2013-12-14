@@ -1,4 +1,8 @@
-<?php
+<?PHP
+
+/**
+ * Plugin for fetching full-text content from aftenposten.no.
+ */
 class Af_Aftenposten extends Plugin {
 	private $host;
 
@@ -22,7 +26,7 @@ class Af_Aftenposten extends Plugin {
 		if (strpos($article["link"], "aftenposten.no") !== FALSE) {
 			if (strpos($article["plugin_data"], "aftenposten,$owner_uid:") === FALSE || $force) {
 				$doc = new DOMDocument();
-                                @$doc->loadHTML(fetch_file_contents($article["link"]));
+				@$doc->loadHTML(fetch_file_contents($article["link"]));
 				if ($doc) {
 					$found = true;
 
