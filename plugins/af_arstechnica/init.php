@@ -17,8 +17,7 @@ class Af_Arstechnica extends Plugin {
 	function hook_article_filter($article) {
 		$owner_uid = $article["owner_uid"];
 
-error_log("ars-technica: " . $article["link"]);
-		$force = true;
+		$force = false;
 
 		if (strpos($article["link"], "arstechnica.com") !== FALSE) {
 			if (strpos($article["plugin_data"], "arstechnica,$owner_uid:") === FALSE || $force) {
