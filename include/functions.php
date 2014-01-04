@@ -3320,7 +3320,7 @@
 
 			$rv['content'] .= "<div class='postTags' style='float : right'>
 				<img src='images/tag.png'
-				class='tagsPic' alt='Tags' title='Tags'>&nbsp;";
+				class='tagsPic' alt='".__('Tags')."' title='".__('Tags')."'>&nbsp;";
 
 			if (!$zoom_mode) {
 				$rv['content'] .= "<span id=\"ATSTR-$id\">$tags_str</span>

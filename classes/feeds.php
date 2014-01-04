@@ -687,7 +687,7 @@ class Feeds extends Handler_Protected {
 
 					$tags_str = format_tags_string($tags, $id);
 
-					$reply['content'] .= "<img src='images/tag.png' alt='Tags' title='Tags'>
+					$reply['content'] .= "<img src='images/tag.png' alt='".__('Tags')."' title='".__('Tags')."'>
 						<span id=\"ATSTR-$id\">$tags_str</span>
 						<a title=\"".__('Edit tags for this article')."\"
 						href=\"#\" onclick=\"editArticleTags($id)\">(+)</a>";
