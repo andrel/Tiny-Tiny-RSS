@@ -36,9 +36,11 @@ class Af_Aftenposten extends Plugin {
 						$xpath = new DomXPath( $doc );
 
 						$title = $xpath->query( '//h1[contains(@class, "articleTitle")]', $elem )->item( 0 );
+						$leadText = $xpath->query( '//p[contains(@class, "leadText")]', $elem )->item( 0 );
 						$publishInfo = $xpath->query( '//div[contains(@class, "publishInfo")]', $elem )->item( 0 );
 						$storyContent = $xpath->query( '//div[contains(@class, "storyContent")]', $elem )->item( 0 );
 						$art->appendChild( $title );
+						$art->appendChild( $leadText );
 						$art->appendChild( $publishInfo );
 						$art->appendChild( $storyContent );
 
