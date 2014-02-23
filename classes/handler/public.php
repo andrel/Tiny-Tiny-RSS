@@ -67,7 +67,7 @@ class Handler_Public extends Handler {
 		$result = $qfh_ret[0];
 		$feed_title = htmlspecialchars($qfh_ret[1]);
 		$feed_site_url = $qfh_ret[2];
-		$last_error = $qfh_ret[3];
+		/* $last_error = $qfh_ret[3]; */
 
 		$feed_self_url = get_self_url_prefix() .
 			"/public.php?op=rss&id=$feed&key=" .
@@ -404,17 +404,17 @@ class Handler_Public extends Handler {
 	}
 
 	function updateTask() {
-		PluginHost::getInstance()->run_hooks(PluginHost::HOOK_UPDATE_TASK, "hook_update_task", $op);
+		PluginHost::getInstance()->run_hooks(PluginHost::HOOK_UPDATE_TASK, "hook_update_task", false);
 	}
 
 	function housekeepingTask() {
-		PluginHost::getInstance()->run_hooks(PluginHost::HOOK_HOUSE_KEEPING, "hook_house_keeping", $op);
+		PluginHost::getInstance()->run_hooks(PluginHost::HOOK_HOUSE_KEEPING, "hook_house_keeping", false);
 	}
 
 	function globalUpdateFeeds() {
 		RPC::updaterandomfeed_real($this->dbh);
 
-		PluginHost::getInstance()->run_hooks(PluginHost::HOOK_UPDATE_TASK, "hook_update_task", $op);
+		PluginHost::getInstance()->run_hooks(PluginHost::HOOK_UPDATE_TASK, "hook_update_task", false);
 	}
 
 	function sharepopup() {
@@ -427,9 +427,10 @@ class Handler_Public extends Handler {
 		<link rel=\"shortcut icon\" type=\"image/png\" href=\"images/favicon.png\">
 		<link rel=\"icon\" type=\"image/png\" sizes=\"72x72\" href=\"images/favicon-72px.png\">";
 
-		stylesheet_tag("css/utility.css");
-		javascript_tag("lib/prototype.js");
-		javascript_tag("lib/scriptaculous/scriptaculous.js?load=effects,dragdrop,controls");
+		echo stylesheet_tag("css/utility.css");
+		echo stylesheet_tag("css/dijit.css");
+		echo javascript_tag("lib/prototype.js");
+		echo javascript_tag("lib/scriptaculous/scriptaculous.js?load=effects,controls");
 		print "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>
 			</head><body id='sharepopup'>";
 
@@ -575,7 +576,7 @@ class Handler_Public extends Handler {
 				}
 			} else {
 				$_SESSION["login_error_msg"] = __("Incorrect username or password");
-				user_error("Failed login attempt from {$_SERVER['REMOTE_ADDR']}", E_USER_WARNING);
+				user_error("Failed login attempt for $login from {$_SERVER['REMOTE_ADDR']}", E_USER_WARNING);
 			}
 
 			if ($_REQUEST['return']) {
@@ -691,7 +692,7 @@ class Handler_Public extends Handler {
 	function subscribe2() {
 		$feed_url = $this->dbh->escape_string(trim($_REQUEST["feed_url"]));
 		$cat_id = $this->dbh->escape_string($_REQUEST["cat_id"]);
-		$from = $this->dbh->escape_string($_REQUEST["from"]);
+		/* $from = $this->dbh->escape_string($_REQUEST["from"]); */
 		$feed_urls = array();
 
 		/* only read authentication information from POST */
@@ -788,8 +789,8 @@ class Handler_Public extends Handler {
 		<link rel=\"shortcut icon\" type=\"image/png\" href=\"images/favicon.png\">
 		<link rel=\"icon\" type=\"image/png\" sizes=\"72x72\" href=\"images/favicon-72px.png\">";
 
-		stylesheet_tag("css/utility.css");
-		javascript_tag("lib/prototype.js");
+		echo stylesheet_tag("css/utility.css");
+		echo javascript_tag("lib/prototype.js");
 
 		print "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>
 			</head><body id='forgotpass'>";

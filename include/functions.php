@@ -79,8 +79,9 @@
 					"ru_RU" => "Русский",
 					"pt_BR" => "Portuguese/Brazil",
 					"zh_CN" => "Simplified Chinese",
+					"zh_TW" => "Traditional Chinese",
 					"sv_SE" => "Svenska",
-					"fi_FI" => "Suomi",					
+					"fi_FI" => "Suomi",
 					"tr_TR" => "Türkçe");
 
 		return $tr;
@@ -339,7 +340,7 @@
 		}
 	}
 
-	function fetch_file_contents($url, $type = false, $login = false, $pass = false, $post_query = false, $timeout = false, $timestamp = 0) {
+	function fetch_file_contents($url, $type = false, $login = false, $pass = false, $post_query = false, $timeout = false, $timestamp = 0, $useragent = false) {
 
 		global $fetch_last_error;
 		global $fetch_last_error_code;
@@ -376,7 +377,8 @@
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-			curl_setopt($ch, CURLOPT_USERAGENT, SELF_USER_AGENT);
+			curl_setopt($ch, CURLOPT_USERAGENT, $useragent ? $useragent :
+				SELF_USER_AGENT);
 			curl_setopt($ch, CURLOPT_ENCODING, "");
 			curl_setopt($ch, CURLOPT_REFERER, $url);
 
@@ -692,6 +694,12 @@
 				$_SERVER["REDIRECT_SSL_CLIENT_V_END"] .
 				$_SERVER["REDIRECT_SSL_CLIENT_S_DN"]);
 		}
+		if ($_SERVER["SSL_CLIENT_M_SERIAL"]) {
+			return sha1($_SERVER["SSL_CLIENT_M_SERIAL"] .
+				$_SERVER["SSL_CLIENT_V_START"] .
+				$_SERVER["SSL_CLIENT_V_END"] .
+				$_SERVER["SSL_CLIENT_S_DN"]);
+		}
 		return "";
 	}
 
@@ -721,7 +729,7 @@
 
 				$_SESSION["name"] = db_fetch_result($result, 0, "login");
 				$_SESSION["access_level"] = db_fetch_result($result, 0, "access_level");
-				$_SESSION["csrf_token"] = sha1(uniqid(rand(), true));
+				$_SESSION["csrf_token"] = uniqid(rand(), true);
 
 				db_query("UPDATE ttrss_users SET last_login = NOW() WHERE id = " .
 					$_SESSION["uid"]);
@@ -751,7 +759,7 @@
 			$_SESSION["auth_module"] = false;
 
 			if (!$_SESSION["csrf_token"]) {
-				$_SESSION["csrf_token"] = sha1(uniqid(rand(), true));
+				$_SESSION["csrf_token"] = uniqid(rand(), true);
 			}
 
 			$_SESSION["ip_address"] = $_SERVER["REMOTE_ADDR"];
@@ -873,7 +881,7 @@
 	}
 
 	function truncate_string($str, $max_len, $suffix = '&hellip;') {
-		if (mb_strlen($str, "utf-8") > $max_len - 3) {
+		if (mb_strlen($str, "utf-8") > $max_len) {
 			return mb_substr($str, 0, $max_len, "utf-8") . $suffix;
 		} else {
 			return $str;
@@ -1606,7 +1614,6 @@
 				AND ttrss_counters_cache.feed_id = id";
 
 		$result = db_query($query);
-		$fctrs_modified = false;
 
 		while ($line = db_fetch_assoc($result)) {
 
@@ -2825,9 +2832,12 @@
 
 			if ($site_url) {
 
-				if ($entry->hasAttribute('href'))
+				if ($entry->hasAttribute('href')) {
 					$entry->setAttribute('href',
 						rewrite_relative_url($site_url, $entry->getAttribute('href')));
+
+					$entry->setAttribute('rel', 'noreferrer');
+				}
 
 				if ($entry->hasAttribute('src')) {
 					$src = rewrite_relative_url($site_url, $entry->getAttribute('src'));
@@ -2912,7 +2922,6 @@
 
 					$fragment = $doc->createDocumentFragment();
 					$text = $child->textContent;
-					$stubs = array();
 
 					while (($pos = mb_stripos($text, $word)) !== false) {
 						$fragment->appendChild(new DomText(mb_substr($text, 0, $pos)));
@@ -3094,19 +3103,16 @@
 	}
 
 	function format_warning($msg, $id = "") {
-		global $link;
 		return "<div class=\"warning\" id=\"$id\">
 			<span><img src=\"images/alert.png\"></span><span>$msg</span></div>";
 	}
 
 	function format_notice($msg, $id = "") {
-		global $link;
 		return "<div class=\"notice\" id=\"$id\">
 			<span><img src=\"images/information.png\"></span><span>$msg</span></div>";
 	}
 
 	function format_error($msg, $id = "") {
-		global $link;
 		return "<div class=\"error\" id=\"$id\">
 			<span><img src=\"images/alert.png\"></span><span>$msg</span></div>";
 	}
@@ -3215,8 +3221,6 @@
 
 			$line = db_fetch_assoc($result);
 
-			$tag_cache = $line["tag_cache"];
-
 			$line["tags"] = get_article_tags($id, $owner_uid, $line["tag_cache"]);
 			unset($line["tag_cache"]);
 
@@ -3251,8 +3255,11 @@
 				header("Content-Type: text/html");
 				$rv['content'] .= "<html><head>
 						<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>
-						<title>Tiny Tiny RSS - ".$line["title"]."</title>
-						<link rel=\"stylesheet\" type=\"text/css\" href=\"css/tt-rss.css\">
+						<title>Tiny Tiny RSS - ".$line["title"]."</title>".
+						stylesheet_tag("css/tt-rss.css").
+						stylesheet_tag("css/zoom.css").
+						stylesheet_tag("css/dijit.css")."
+
 						<link rel=\"shortcut icon\" type=\"image/png\" href=\"images/favicon.png\">
 						<link rel=\"icon\" type=\"image/png\" sizes=\"72x72\" href=\"images/favicon-72px.png\">
 
@@ -3369,7 +3376,7 @@
 					$rv['content'] .= "&nbsp;";
 
 					$rv['content'] .= "<a target='_blank' href='" . htmlspecialchars($tmp_line['feed_url']) . "'>";
-					$rv['content'] .= "<img title='".__('Feed URL')."'class='tinyFeedIcon' src='images/pub_set.svg'></a>";
+					$rv['content'] .= "<img title='".__('Feed URL')."' class='tinyFeedIcon' src='images/pub_set.png'></a>";
 
 					$rv['content'] .= "</div>";
 				}
@@ -3747,7 +3754,7 @@
 		if (db_num_rows($result) == 1) {
 			return db_fetch_result($result, 0, "access_key");
 		} else {
-			$key = db_escape_string(sha1(uniqid(rand(), true)));
+			$key = db_escape_string(uniqid(base_convert(rand(), 10, 36)));
 
 			$result = db_query("INSERT INTO ttrss_access_keys
 				(access_key, feed_id, is_cat, owner_uid)
@@ -4255,9 +4262,9 @@
 			$fetch_last_error = curl_errno($curl) . " " . curl_error($curl);
 			curl_close($curl);
 
-			$oline='';
-			foreach($status as $key=>$eline){$oline.='['.$key.']'.$eline.' ';}
-			$line =$oline." \r\n ".$url."\r\n-----------------\r\n";
+#			$oline='';
+#			foreach($status as $key=>$eline){$oline.='['.$key.']'.$eline.' ';}
+#			$line =$oline." \r\n ".$url."\r\n-----------------\r\n";
 #			$handle = @fopen('./curl.error.log', 'a');
 #			fwrite($handle, $line);
 			return FALSE;
@@ -4297,7 +4304,7 @@
 	function stylesheet_tag($filename) {
 		$timestamp = filemtime($filename);
 
-		echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$filename?$timestamp\"/>\n";
+		return "<link rel=\"stylesheet\" type=\"text/css\" href=\"$filename?$timestamp\"/>\n";
 	}
 
 	function javascript_tag($filename) {
@@ -4312,7 +4319,7 @@
 
 		if ($query) $timestamp .= "&$query";
 
-		echo "<script type=\"text/javascript\" charset=\"utf-8\" src=\"$filename?$timestamp\"></script>\n";
+		return "<script type=\"text/javascript\" charset=\"utf-8\" src=\"$filename?$timestamp\"></script>\n";
 	}
 
 	function calculate_dep_timestamp() {
