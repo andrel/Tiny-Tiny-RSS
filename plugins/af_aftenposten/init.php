@@ -40,10 +40,13 @@ class Af_Aftenposten extends Plugin {
 						$publishInfo = $xpath->query( '//div[contains(@class, "publishInfo")]', $elem )->item( 0 );
 						$storyContent = $xpath->query( '//div[contains(@class, "storyContent")]', $elem )->item( 0 );
 						$art->appendChild( $title );
-						$art->appendChild( $leadText );
-						$art->appendChild( $publishInfo );
+						if ( $publishInfo !== null ) {
+							$art->appendChild( $publishInfo );
+						}
 						$art->appendChild( $storyContent );
-
+						if ( $leadText !== null) {
+							$art->appendChild( $leadText );
+						}
 						$article["content"] = $doc->saveXML( $art );
 						if (!$force) $article["plugin_data"] = "aftenposten,$owner_uid:" . $article["plugin_data"];
 					}
