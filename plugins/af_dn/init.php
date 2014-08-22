@@ -38,7 +38,7 @@ class Af_Dn extends Plugin {
 
 						$isPreview = $xpath->query( '//a[contains(@class, "articlePreviewLink")]', $elem)->length != 0;
 						if ( $isPreview ) {
-							$art->appendChild( '<h1>DN_PREVIEW</h1>' );
+							$art->appendChild( new DOMText( '<h1>DN_PREVIEW</h1>' ) );
 						}
 						
 
